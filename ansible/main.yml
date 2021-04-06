@@ -1,0 +1,7 @@
+---
+# file: main.yml
+- name: Update hosts
+  import_playbook: playbooks/upd-servers.yml
+
+- name: Install nginx
+  import_playbook: playbooks/web-servers.yml

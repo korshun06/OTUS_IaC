@@ -1,0 +1,13 @@
+---
+# file: upd-servers.yml
+- name: Ansible | Update all packages to their latest version
+  apt:
+    name: "*"
+    state: latest
+
+- name: Ansible | Install packages
+  package:
+    name:
+      - 'nano'
+      - 'git'
+    state: present
