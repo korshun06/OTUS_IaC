@@ -1,65 +1,71 @@
 {
-    "variables": {
-      "proxmox_username": "{{env `PM_USER`}}",
-      "proxmox_password": "{{env `PM_PASSWORD`}}",
-      "proxmox_url": "{{env `PM_URL`}}",
-      "packer_ip": "{{env `PK_IP`}}",
-      "http_dir": "{{env `HTTP_DIR`}}"
-    },
-    "builders": [
-      {
-        "type": "proxmox-iso",
-        "proxmox_url": "{{user `proxmox_url`}}",
-        "username": "{{user `proxmox_username`}}",
-        "password": "{{user `proxmox_password`}}",
-        "node": "pve1",
-        "iso_url": "https://mirror.yandex.ru/centos/8/isos/x86_64/CentOS-8.3.2011-x86_64-boot.iso",
-        "iso_storage_pool": "local",
-        "iso_checksum": "sha256:2b801bc5801816d0cf27fc74552cf058951c42c7b72b1fe313429b1070c3876c",
-        "insecure_skip_tls_verify": true,
-        "memory": "2048",
-        "cores": "2",
-        "os": "l26",
-        "network_adapters": [
-          {
-            "bridge": "vmbr0",
-            "model": "virtio"
-          }
-        ],
-        "disks": [
-          {
-            "type": "scsi",
-            "disk_size": "32G",
-            "storage_pool": "HDD",
-            "storage_pool_type": "lvm"
-          }
-        ],
-        "unmount_iso": true,
-        "scsi_controller": "virtio-scsi-single",
-        "http_directory": "{{user `http_dir`}}",
-        "http_bind_address": "{{user `packer_ip`}}",
-        "boot_wait": "5s",
-        "boot_command": [
-          "<up><tab> ip=dhcp inst.cmdline inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter>"
-        ],
-        "ssh_username": "root",
-        "ssh_timeout": "15m",
-        "ssh_password": "Packer",
-        "template_name": "CentOS-8-tmpl",
-        "template_description": "CentOS-8, generated on {{ isotime \"2006-01-02T15:04:05Z\" }}"
-      }
-    ],
-    "provisioners": [
-      {
-        "type": "shell",
-        "inline": [
-          "echo 'updating yum cache'",
-          "sudo yum update -y",
-          "sudo yum install -y nginx nano git",
-          "sudo systemctl enable nginx",
-          "sudo systemctl start nginx",
-          "curl localhost"
-        ]
-      }
-    ]
-  }
+  "variables": {
+    "proxmox_username": "{{user `PM_USER`}}",
+    "proxmox_password": "{{user `PM_PASSWORD`}}",
+    "proxmox_url": "{{user `PM_URL`}}",
+    "proxmox_node": "{{user `PM_NODE`}}",
+    "iso_url": "{{user `ISO_URL`}}",
+    "iso_checksum": "{{user `ISO_CHS`}}",
+    "packer_ip": "{{user `PK_IP`}}",
+    "http_dir": "{{user `HTTP_DIR`}}",
+    "disk_size": "{{user `DISK_S`}}",
+    "storage_pool": "{{user `STOR_P`}}",
+    "storage_pool_type": "{{user `STOR_P_T`}}"
+  },
+  "builders": [
+    {
+      "type": "proxmox-iso",
+      "proxmox_url": "{{user `proxmox_url`}}",
+      "username": "{{user `proxmox_username`}}",
+      "password": "{{user `proxmox_password`}}",
+      "node": "{{user `proxmox_node`}}",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_storage_pool": "local",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "insecure_skip_tls_verify": true,
+      "memory": "2048",
+      "cores": "2",
+      "os": "l26",
+      "network_adapters": [
+        {
+          "bridge": "vmbr0",
+          "model": "virtio"
+        }
+      ],
+      "disks": [
+        {
+          "type": "scsi",
+          "disk_size": "{{user `disk_size`}}",
+          "storage_pool": "{{user `storage_pool`}}",
+          "storage_pool_type": "{{user `storage_pool_type`}}"
+        }
+      ],
+      "unmount_iso": true,
+      "scsi_controller": "virtio-scsi-single",
+      "http_directory": "{{user `http_dir`}}",
+      "http_bind_address": "{{user `packer_ip`}}",
+      "boot_wait": "5s",
+      "boot_command": [
+        "<up><tab> ip=dhcp inst.cmdline inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter>"
+      ],
+      "ssh_username": "root",
+      "ssh_timeout": "15m",
+      "ssh_password": "Packer",
+      "template_name": "CentOS-8-tmpl",
+      "template_description": "CentOS-8, generated on {{ isotime \"2006-01-02T15:04:05Z\" }}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "echo 'updating yum cache'",
+        "sudo yum update -y",
+        "sudo yum install -y nginx nano git",
+        "sudo systemctl enable nginx",
+        "sudo systemctl start nginx",
+        "curl localhost"
+      ]
+    }
+  ]
+}

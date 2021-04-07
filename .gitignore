@@ -1,0 +1,7 @@
+*.auto.json
+variables.json
+key.json
+/src
+/bin
+/pkg
+meta.txt
