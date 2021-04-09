@@ -32,8 +32,10 @@ variable "db_count" {
 
 variable "pb_ssh_keys" {
   type = string
+  sensitive = true
 }
 
-variable "tf_backend_token" {
+variable "pvt_ssh_key" {
   type = string
+  sensitive = true
 }

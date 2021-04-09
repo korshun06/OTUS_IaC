@@ -11,3 +11,4 @@ meta.txt
 go.mod
 go.sum
 creds/*
+.terraform

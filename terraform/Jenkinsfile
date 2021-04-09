@@ -2,7 +2,6 @@ pipeline {
   agent any
 
   environment {
-    TF_CLOUD_TOKEN = credentials('tf_backend_token')
     YC_ZONE = credentials('yc_zone')
     YC_CLOUD_ID = credentials('yc_cloud_id')
     YC_FOLDER_ID = credentials('yc_folder_id')
@@ -18,27 +17,40 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        checkout(
+            [$class: 'GitSCM',
+            branches: [[name: '*/master']],
+            extensions: [],
+            userRemoteConfigs: [[url: 'https://github.com/korshun06/OTUS_IaC/']]
+            ])
+      }
+    }
+
+    stage('TF Init token TC') {
+      steps {
+        withCredentials([file(credentialsId: 'tf_backend_token', variable: 'TF_CLOUD_TOKEN')]){
+            print 'joke=' + TF_CLOUD_TOKEN
+            sh 'cp ${TF_CLOUD_TOKEN} ~/.terraformrc'
+        }
       }
     }
 
     stage('TF Init') {
       steps {
-        sh 'cd terraform/'
-        sh 'terraform init'
+        sh 'terraform -chdir=terraform/ init'
         }
       }      
 
     stage('TF Plan') {
       steps {
-        sh 'cd terraform/'
-        sh 'terraform plan -var "tf_backend_token=${TF_CLOUD_TOKEN}" -var "pb_ssh_keys=${PB_SSH_KEYS}" -var "pvt_ssh_key=${PVT_SSH_KEY}"'
+        sh 'terraform -chdir=terraform/ plan -var "pb_ssh_keys=${PB_SSH_KEYS}" -var "pvt_ssh_key=${PVT_SSH_KEY}"'
       }
     }
   }
   post {
     always {
       cleanWs()
+      sh 'rm -f ~/.terraformrc'
     }
   }
 }
