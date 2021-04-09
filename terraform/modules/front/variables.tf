@@ -12,4 +12,5 @@ variable "subnet_id" {
 
 variable "ssh_keys" {
   type = string
+  sensitive = true
 }
