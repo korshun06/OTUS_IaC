@@ -4,10 +4,6 @@ terraform {
       source = "yandex-cloud/yandex"
       version = "0.55.0"
     }
-    ansible = {
-      source = "nbering/ansible"
-      version = "1.0.4"
-    }
   }
 }
 
@@ -35,18 +31,18 @@ resource "yandex_compute_instance" "vm-1" {
     ssh-keys = var.ssh_keys
   }
 
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file(var.pvt_ssh_key)
+    host        = self.network_interface.0.nat_ip_address
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sudo apt update -y",
       "sudo apt install -y nginx nano git",
       "sudo systemctl enable nginx"
     ]
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("~/.ssh/id_rsa")
-    host        = self.network_interface.0.nat_ip_address
   }
 }

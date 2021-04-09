@@ -1,20 +1,20 @@
-variable "zone" {
+variable "yc_zone" {
   type = string
 }
 
-variable "cloud_id" {
+variable "yc_cloud_id" {
   type = string
 }
 
-variable "folder_id" {
+variable "yc_folder_id" {
   type = string
 }
 
-variable "image_id" {
+variable "yc_image_id" {
   type = string
 }
 
-variable "yc_token" {
+variable "yc_yc_token" {
   type = string
 }
 
@@ -30,6 +30,10 @@ variable "db_count" {
   type = number
 }
 
-variable "ssh_keys" {
+variable "pb_ssh_keys" {
+  type = string
+}
+
+variable "tf_backend_token" {
   type = string
 }
