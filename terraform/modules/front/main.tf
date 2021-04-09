@@ -2,6 +2,11 @@ terraform {
   required_providers {
     yandex = {
       source = "yandex-cloud/yandex"
+      version = "0.55.0"
+    }
+    ansible = {
+      source = "nbering/ansible"
+      version = "1.0.4"
     }
   }
 }

@@ -10,3 +10,4 @@ key.json
 meta.txt
 go.mod
 go.sum
+creds/*
