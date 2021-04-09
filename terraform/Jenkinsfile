@@ -24,13 +24,13 @@ pipeline {
 
     stage('TF Init') {
       steps {
-        sh 'terraform init'
+        sh 'terraform -chdir=./terraform init'
         }
       }      
 
     stage('TF Plan') {
       steps {
-        sh 'terraform plan -var "tf_backend_token=${TF_CLOUD_TOKEN}" -var "pb_ssh_keys=${PB_SSH_KEYS}" -var "pvt_ssh_key=${PVT_SSH_KEY}"'
+        sh 'terraform -chdir=./terraform plan -var "tf_backend_token=${TF_CLOUD_TOKEN}" -var "pb_ssh_keys=${PB_SSH_KEYS}" -var "pvt_ssh_key=${PVT_SSH_KEY}"'
       }
     }
   }
