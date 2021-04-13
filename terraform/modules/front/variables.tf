@@ -14,3 +14,8 @@ variable "ssh_keys" {
   type = string
   sensitive = true
 }
+
+variable "pvt_ssh_key" {
+  type = string
+  sensitive = true
+}

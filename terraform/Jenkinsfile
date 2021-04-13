@@ -1,56 +1,65 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    YC_ZONE = credentials('yc_zone')
-    YC_CLOUD_ID = credentials('yc_cloud_id')
-    YC_FOLDER_ID = credentials('yc_folder_id')
-    YC_TOKEN = credentials('yc_token')
-    PB_SSH_KEYS = credentials('pb_ssh_keys')
-    PVT_SSH_KEY = credentials('pvt_ssh_key')
-  }
-
-  tools {
-    terraform 'terraform14'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout(
-            [$class: 'GitSCM',
-            branches: [[name: '*/master']],
-            extensions: [],
-            userRemoteConfigs: [[url: 'https://github.com/korshun06/OTUS_IaC/']]
-            ])
-      }
+    environment {
+        YC_ZONE = credentials('yc_zone')
+        YC_CLOUD_ID = credentials('yc_cloud_id')
+        YC_FOLDER_ID = credentials('yc_folder_id')
+        YC_TOKEN = credentials('yc_token')
+        PB_SSH_KEYS = credentials('pb_ssh_keys')
+        PVT_SSH_KEY = credentials('pvt_ssh_key')
     }
 
-    stage('TF Init token TC') {
-      steps {
-        withCredentials([file(credentialsId: 'tf_backend_token', variable: 'TF_CLOUD_TOKEN')]){
-            print 'joke=' + TF_CLOUD_TOKEN
-            sh 'cp ${TF_CLOUD_TOKEN} ~/.terraformrc'
+    tools {
+        terraform 'terraform14'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout(
+                    [$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/korshun06/OTUS_IaC/']]
+                    ]
+                )
+            }
         }
-      }
-    }
 
-    stage('TF Init') {
-      steps {
-        sh 'terraform -chdir=terraform/ init'
+        stage('TF Init token TC') {
+            steps {
+                withCredentials([file(credentialsId: 'tf_backend_token', variable: 'TF_CLOUD_TOKEN')]){
+                    sh 'rm -f ~/.terraformrc'
+                    sh 'cp ${TF_CLOUD_TOKEN} ~/.terraformrc'
+                }
+                sh 'rm -f ./terraform/cred.auto.tfvars'
+                sh 'echo yc_zone=\\"$YC_ZONE\\" >> ./terraform/cred.auto.tfvars'
+                sh 'echo yc_cloud_id=\\"$YC_CLOUD_ID\\" >> ./terraform/cred.auto.tfvars'
+                sh 'echo yc_folder_id=\\"$YC_FOLDER_ID\\" >> ./terraform/cred.auto.tfvars'
+                sh 'echo yc_token=\\"$YC_TOKEN\\" >> ./terraform/cred.auto.tfvars'
+                sh 'echo pb_ssh_keys=\\"$PB_SSH_KEYS\\" >> ./terraform/cred.auto.tfvars'
+            }
         }
-      }      
 
-    stage('TF Plan') {
-      steps {
-        sh 'terraform -chdir=terraform/ plan -var "pb_ssh_keys=${PB_SSH_KEYS}" -var "pvt_ssh_key=${PVT_SSH_KEY}"'
-      }
+        stage('TF Init') {
+            steps {
+                sh 'terraform -chdir=terraform/ init'
+            }
+        }      
+
+        stage('TF Plan') {
+            steps {
+                sh 'terraform -chdir=terraform/ plan'
+            }
+        }
     }
-  }
-  post {
-    always {
-      cleanWs()
-      sh 'rm -f ~/.terraformrc'
+
+    post {
+        always {
+            cleanWs()
+            sh 'rm -f ~/.terraformrc'
+            sh 'rm -f ./terraform/cred.auto.tfvars'
+        }
     }
-  }
 }

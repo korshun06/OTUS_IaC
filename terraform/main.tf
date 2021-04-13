@@ -9,6 +9,7 @@ module "front" {
   front_count = var.front_count
   subnet_id   = module.network.subnet_id
   ssh_keys    = var.pb_ssh_keys
+  pvt_ssh_key = var.pvt_ssh_key
 }
 
 module "back" {
