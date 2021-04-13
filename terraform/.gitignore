@@ -2,6 +2,6 @@ terraform.tfstate*
 .terraform.lock.hcl
 terraform.tfstate
 .terraform
-*.auto.tfvars
+cred.auto.tfvars
 hosts
 .terraformrc
