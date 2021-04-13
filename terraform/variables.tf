@@ -14,7 +14,7 @@ variable "yc_image_id" {
   type = string
 }
 
-variable "yc_yc_token" {
+variable "yc_token" {
   type = string
 }
 
