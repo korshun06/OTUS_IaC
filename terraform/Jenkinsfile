@@ -55,7 +55,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'terraform -chdir=terraform/ plan > tr_plan.txt'
+                sh 'terraform -chdir=terraform/ plan | tee tr_plan.txt'
                 archiveArtifacts artifacts: 'tr_plan.txt'
                 telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "Terraform change plan from job '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
             }
@@ -69,7 +69,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'terraform -chdir=terraform/ apply -auto-approve > tr_apply.txt'
+                sh 'terraform -chdir=terraform/ apply -auto-approve | tee tr_apply.txt'
                 archiveArtifacts artifacts: 'tr_apply.txt'
                 telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Terraform infrastructure changes from job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
@@ -82,7 +82,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'terraform -chdir=terraform/ destroy -auto-approve > tr_destroy.txt'
+                sh 'terraform -chdir=terraform/ destroy -auto-approve | tee tr_destroy.txt'
                 archiveArtifacts artifacts: 'tr_destroy.txt'
                 telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Removing the terraform infrastructure from the job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
