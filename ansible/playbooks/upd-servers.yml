@@ -1,7 +1,7 @@
 ---
 # file: upd-servers.yml
 - hosts: all
-  gather_facts: False
+  gather_facts: 'False'
   tasks:
     - name: Ansible | Install packages
       apt:
@@ -9,4 +9,4 @@
           - 'nano'
           - 'git'
         state: present
-        update_cache: yes
+        update_cache: 'True'
