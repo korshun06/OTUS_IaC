@@ -33,7 +33,10 @@ resource "yandex_compute_instance" "vm-1" {
   }
 
   provisioner "remote-exec" {
-    inline = ["echo Connect OK!"]
+    inline = [
+      "echo Connect OK!",
+      "logout"
+      ]
     connection {
       type        = "ssh"
       user        = "ubuntu"
