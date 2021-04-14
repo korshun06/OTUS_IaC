@@ -55,6 +55,6 @@ resource "yandex_compute_instance" "vm-1" {
 
   provisioner "local-exec" {
     working_dir = "../ansible"
-    command = "ansible-playbook -u ubuntu -i '${self.network_interface.0.nat_ip_address}' --private-key '${var.pvt_ssh_key}' main.yml"
+    command = "ansible-playbook -u ubuntu -i '${self.network_interface.0.nat_ip_address},' --private-key '${var.pvt_ssh_key}' main.yml"
   }
 }
