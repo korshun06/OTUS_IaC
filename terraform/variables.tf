@@ -39,9 +39,7 @@ variable "pb_ssh_keys" {
   sensitive = true
 }
 
-variable "pvt_ssh_key" 
-
-{
+variable "pvt_ssh_key" {
 
 
 
