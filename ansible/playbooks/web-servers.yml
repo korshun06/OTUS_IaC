@@ -1,5 +1,5 @@
 ---
 # file: 1c-web.yml
-- hosts: web_nginx
+- hosts: all
   roles:
-    - geerlingguy.nginx
+    - ../roles/geerlingguy.nginx

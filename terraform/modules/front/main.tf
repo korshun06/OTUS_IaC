@@ -38,11 +38,21 @@ resource "yandex_compute_instance" "vm-1" {
     host        = self.network_interface.0.nat_ip_address
   }
 
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "sudo apt update -y",
+  #     "sudo apt install -y nginx nano git",
+  #     "sudo systemctl enable nginx"
+  #   ]
+  # }
+
   provisioner "remote-exec" {
     inline = [
-      "sudo apt update -y",
-      "sudo apt install -y nginx nano git",
-      "sudo systemctl enable nginx"
-    ]
+      "echo Connect OK!"
+      ]
+  }
+
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu -i '${self.network_interface.0.nat_ip_address},' --private-key ${var.pvt_ssh_key} ../ansible/main.yml"
   }
 }

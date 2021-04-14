@@ -1,15 +1,15 @@
 variable "yc_zone" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "yc_cloud_id" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "yc_folder_id" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -18,7 +18,7 @@ variable "yc_image_id" {
 }
 
 variable "yc_token" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -35,11 +35,11 @@ variable "db_count" {
 }
 
 variable "pb_ssh_keys" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "pvt_ssh_key" {
-  type = string
+  type      = string
   sensitive = true
 }

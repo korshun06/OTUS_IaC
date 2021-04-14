@@ -57,7 +57,7 @@ pipeline {
             steps {
                 sh 'terraform -chdir=terraform/ plan > tr_plan.txt'
                 archiveArtifacts artifacts: 'tr_plan.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "План изменений terraform из джобы '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "Terraform change plan from job '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
             }
         }
         
@@ -71,7 +71,7 @@ pipeline {
             steps {
                 sh 'terraform -chdir=terraform/ apply -auto-approve > tr_apply.txt'
                 archiveArtifacts artifacts: 'tr_apply.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Изменения инфраструктуры terraform из джобы '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Terraform infrastructure changes from job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
         }
         
@@ -84,7 +84,7 @@ pipeline {
             steps {
                 sh 'terraform -chdir=terraform/ destroy -auto-approve > tr_destroy.txt'
                 archiveArtifacts artifacts: 'tr_destroy.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Удаление инфраструктуры terraform из джобы '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Removing the terraform infrastructure from the job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
         }
     }
