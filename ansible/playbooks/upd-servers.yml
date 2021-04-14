@@ -3,15 +3,10 @@
 - hosts: all
   gather_facts: False
   tasks:
-    - name: Ansible | Update all packages to their latest version
-      apt:
-        # name: "*"
-        # state: latest
-        update_cache: yes
-
     - name: Ansible | Install packages
-      package:
+      apt:
         name:
           - 'nano'
           - 'git'
-        state: present
+        state: latest
+        update_cache: yes
