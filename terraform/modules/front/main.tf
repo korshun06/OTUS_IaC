@@ -46,7 +46,7 @@ resource "yandex_compute_instance" "vm-1" {
   }
 
   provisioner "local-exec" {
-        command = "sleep 5"
+        command = "sleep 20"
   }
 
   provisioner "local-exec" {
