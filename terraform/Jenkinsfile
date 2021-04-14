@@ -1,13 +1,18 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'action', choices: ['plan', 'apply', 'destroy'], description: 'Pick action')
+    }
+
     environment {
-        YC_ZONE = credentials('yc_zone')
-        YC_CLOUD_ID = credentials('yc_cloud_id')
-        YC_FOLDER_ID = credentials('yc_folder_id')
-        YC_TOKEN = credentials('yc_token')
-        PB_SSH_KEYS = credentials('pb_ssh_keys')
-        PVT_SSH_KEY = credentials('pvt_ssh_key')
+        TF_VAR_yc_zone = credentials('yc_zone')
+        TF_VAR_yc_cloud_id = credentials('yc_cloud_id')
+        TF_VAR_yc_folder_id = credentials('yc_folder_id')
+        TF_VAR_yc_token = credentials('yc_token')
+        TF_VAR_pb_ssh_keys = credentials('pb_ssh_keys')
+        TF_VAR_pvt_ssh_key = credentials('pvt_ssh_key')
+        TEL_CHATID = credentials('tl_chatId')
     }
 
     tools {
@@ -15,6 +20,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout(
@@ -33,12 +39,6 @@ pipeline {
                     sh 'rm -f ~/.terraformrc'
                     sh 'cp ${TF_CLOUD_TOKEN} ~/.terraformrc'
                 }
-                sh 'rm -f ./terraform/cred.auto.tfvars'
-                sh 'echo yc_zone=\\"$YC_ZONE\\" >> ./terraform/cred.auto.tfvars'
-                sh 'echo yc_cloud_id=\\"$YC_CLOUD_ID\\" >> ./terraform/cred.auto.tfvars'
-                sh 'echo yc_folder_id=\\"$YC_FOLDER_ID\\" >> ./terraform/cred.auto.tfvars'
-                sh 'echo yc_token=\\"$YC_TOKEN\\" >> ./terraform/cred.auto.tfvars'
-                sh 'echo pb_ssh_keys=\\"$PB_SSH_KEYS\\" >> ./terraform/cred.auto.tfvars'
             }
         }
 
@@ -49,8 +49,42 @@ pipeline {
         }      
 
         stage('TF Plan') {
+            when {
+                expression { 
+                    return params.action == 'plan'
+                }
+            }
             steps {
-                sh 'terraform -chdir=terraform/ plan'
+                sh 'terraform -chdir=terraform/ plan > tr_plan.txt'
+                archiveArtifacts artifacts: 'tr_plan.txt'
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "План изменений terraform из джобы '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
+            }
+        }
+        
+        stage('TF Apply') {
+            when {
+                expression { 
+                    return params.action == 'apply'
+                    
+                }
+            }
+            steps {
+                sh 'terraform -chdir=terraform/ apply -auto-approve > tr_apply.txt'
+                archiveArtifacts artifacts: 'tr_apply.txt'
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Изменения инфраструктуры terraform из джобы '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+            }
+        }
+        
+        stage('TF Destroy') {
+            when {
+                expression { 
+                    return params.action == 'destroy'
+                }
+            }
+            steps {
+                sh 'terraform -chdir=terraform/ destroy -auto-approve > tr_destroy.txt'
+                archiveArtifacts artifacts: 'tr_destroy.txt'
+                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Удаление инфраструктуры terraform из джобы '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
         }
     }
@@ -59,7 +93,6 @@ pipeline {
         always {
             cleanWs()
             sh 'rm -f ~/.terraformrc'
-            sh 'rm -f ./terraform/cred.auto.tfvars'
         }
     }
 }
