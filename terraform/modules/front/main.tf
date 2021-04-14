@@ -32,29 +32,18 @@ resource "yandex_compute_instance" "vm-1" {
     ssh-keys = var.ssh_keys
   }
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file(var.pvt_ssh_key)
-    host        = self.network_interface.0.nat_ip_address
-  }
-
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "sudo apt update -y",
-  #     "sudo apt install -y nginx nano git",
-  #     "sudo systemctl enable nginx"
-  #   ]
-  # }
-
   provisioner "remote-exec" {
-    inline = [
-      "echo Connect OK!"
-      ]
+    inline = ["echo Connect OK!"]
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file(var.pvt_ssh_key)
+      host        = self.network_interface.0.nat_ip_address
+    }
   }
 
   provisioner "local-exec" {
     working_dir = "../ansible"
-    command = "ansible-playbook -u ubuntu -i ${self.network_interface.0.nat_ip_address}, --private-key '${var.pvt_ssh_key}' main.yml"
+    command = "ansible-playbook -u ubuntu -i '${self.network_interface.0.nat_ip_address},' --private-key ${var.pvt_ssh_key} main.yml"
   }
 }
