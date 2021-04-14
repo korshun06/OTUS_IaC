@@ -13,6 +13,8 @@ pipeline {
         TF_VAR_pb_ssh_keys = credentials('pb_ssh_keys')
         TF_VAR_pvt_ssh_key = credentials('pvt_ssh_key')
         TEL_CHATID = credentials('tl_chatId')
+        httpStatus = ""
+        check_ips = ""
     }
 
     tools {
@@ -33,6 +35,15 @@ pipeline {
             }
         }
 
+        stage('Check linters') {
+            steps {
+                sh 'terraform -chdir=terraform/ fmt -check'
+                sh 'ansible-playbook --syntax-check ansible/main.yml'
+                // sh 'ansible-lint ansible/main.yml'
+                sh 'yamllint -d "{extends: relaxed, rules: {line-length: disable}}" ./'
+            }
+        }
+
         stage('TF Init token TC') {
             steps {
                 withCredentials([file(credentialsId: 'tf_backend_token', variable: 'TF_CLOUD_TOKEN')]){
@@ -42,11 +53,12 @@ pipeline {
             }
         }
 
-        stage('TF Init') {
+        stage('TF Init and validate') {
             steps {
                 sh 'terraform -chdir=terraform/ init'
+                sh 'terraform -chdir=terraform/ validate'
             }
-        }      
+        }
 
         stage('TF Plan') {
             when {
@@ -56,8 +68,8 @@ pipeline {
             }
             steps {
                 sh 'terraform -chdir=terraform/ plan | tee tr_plan.txt'
-                archiveArtifacts artifacts: 'tr_plan.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "Terraform change plan from job '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
+                // archiveArtifacts artifacts: 'tr_plan.txt'
+                // telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_plan.txt', caption: "Terraform change plan from job '${env.JOB_NAME}'", silent: true, failBuildIfUploadFailed: false)
             }
         }
         
@@ -65,13 +77,36 @@ pipeline {
             when {
                 expression { 
                     return params.action == 'apply'
-                    
                 }
             }
             steps {
                 sh 'terraform -chdir=terraform/ apply -auto-approve | tee tr_apply.txt'
-                archiveArtifacts artifacts: 'tr_apply.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Terraform infrastructure changes from job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+                // archiveArtifacts artifacts: 'tr_apply.txt'
+                // telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_apply.txt', caption: "Terraform infrastructure changes from job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+            }
+        }
+
+        stage ('Check Web Health') {
+            when {
+                expression { 
+                    return params.action == 'apply'
+                }
+            }
+            steps {                      
+                script {
+                    def ip_out = sh(returnStdout: true, script: "terraform -chdir=terraform/ output -json access_ip")
+                    check_ips = readJSON text: "${ip_out}"
+                    check_ips.each { value ->
+                        httpStatus = sh(script: "curl -w '%{http_code}' $value -o /dev/null", returnStdout: true)
+                        
+                        if (httpStatus != "200") {
+                            echo "Web error with status code = ${httpStatus} when calling $value"
+                            error("Web error")
+                        } else {
+                            echo "Web $value OK with status: ${httpStatus}"
+                        }
+                    }
+                }
             }
         }
         
@@ -83,16 +118,16 @@ pipeline {
             }
             steps {
                 sh 'terraform -chdir=terraform/ destroy -auto-approve | tee tr_destroy.txt'
-                archiveArtifacts artifacts: 'tr_destroy.txt'
-                telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Removing the terraform infrastructure from the job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
+                // archiveArtifacts artifacts: 'tr_destroy.txt'
+                // telegramUploader(chatId: "${TEL_CHATID}", filter: 'tr_destroy.txt', caption: "Removing the terraform infrastructure from the job '${env.JOB_NAME}", silent: true, failBuildIfUploadFailed: false)
             }
         }
     }
 
     post {
         always {
-            cleanWs()
             sh 'rm -f ~/.terraformrc'
+            cleanWs()
         }
     }
 }
