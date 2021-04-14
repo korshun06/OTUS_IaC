@@ -33,20 +33,13 @@ resource "yandex_compute_instance" "vm-1" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "echo Connect OK!",
-      "exit"
-      ]
+    inline = ["echo Connect OK!"]
     connection {
       type        = "ssh"
       user        = "ubuntu"
       private_key = file(var.pvt_ssh_key)
       host        = self.network_interface.0.nat_ip_address
     }
-  }
-
-  provisioner "local-exec" {
-        command = "sleep 20"
   }
 
   provisioner "local-exec" {
